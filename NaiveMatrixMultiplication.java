@@ -1,6 +1,6 @@
 import java.util.Random;
 
-public class Matrix {
+public class NaiveMatrixMultiplication {
 	static int n = 1024;
 	static double[][] a = new double[n][n];
 	static double[][] b = new double[n][n];
