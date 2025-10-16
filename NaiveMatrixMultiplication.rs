@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 /// Measures mean, median, and std deviation and saves results to a CSV file.
 
 // === Parameters ===
-const MATRIX_SIZES: [usize; 2] = [10, 100];
+const MATRIX_SIZES: [usize; 4] = [10, 100, 1000, 10000];
 const ITERATIONS: usize = 100;
 const PAUSE_EVERY: usize = 20;
 const PAUSE_DURATION: u64 = 10;
@@ -128,7 +128,6 @@ fn save_results_to_csv(results: &Vec<(usize, String, String, f64, f64, f64, Stri
 
 // --- Main ---
 fn main() {
-    println!("🚀 Starting Rust matrix multiplication benchmark...");
 
     let mut results: Vec<(usize, String, String, f64, f64, f64, String)> = Vec::new();
 

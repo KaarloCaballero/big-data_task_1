@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 public class NaiveMatrixMultiplication {
 
     // --- Parameters ---
-    static int[] matrixSizes = {10, 100};
+    static int[] matrixSizes = {10, 100, 1000, 10000};
     static int iterations = 100;
     static int pauseEvery = 20;        // Pause every 20 iterations
     static int pauseDuration = 10;     // Pause duration in seconds
@@ -26,7 +26,7 @@ public class NaiveMatrixMultiplication {
                 matrix[i][j] = buffer.getInt();
             }
         }
-        System.out.println("✅ Loaded matrix from '" + filename + "' (" + size + "x" + size + ")");
+        System.out.println("[OK] Loaded matrix from '" + filename + "' (" + size + "x" + size + ")");
         return matrix;
     }
 
@@ -50,7 +50,7 @@ public class NaiveMatrixMultiplication {
         System.out.println("\n=== Warm-up: " + iterations + " iterations for size " + size + "x" + size + " ===");
         for (int i = 1; i <= iterations; i++) {
             naiveMatrixMultiplication(A, B, size);
-            System.out.println("✅ Warm-up iteration " + i + " completed");
+            System.out.println("[OK] Warm-up iteration " + i + " completed");
             TimeUnit.SECONDS.sleep(pauseSeconds);
         }
     }
@@ -65,7 +65,7 @@ public class NaiveMatrixMultiplication {
                 writer.println(String.join(",", row));
             }
         }
-        System.out.println("\n✅ All results saved to " + csvFile);
+        System.out.println("\n[OK] All results saved to " + csvFile);
     }
 
     // --- Calculate statistics ---
@@ -117,7 +117,7 @@ public class NaiveMatrixMultiplication {
                 times.add(elapsed);
 
                 if (i % pauseEvery == 0 && i != iterations) {
-                    System.out.println("💤 Pausing for " + pauseDuration + " seconds to cool off the CPU...");
+                    System.out.println("[PAUSE] Pausing for " + pauseDuration + " seconds to cool off the CPU...");
                     TimeUnit.SECONDS.sleep(pauseDuration);
                 }
             }
@@ -126,7 +126,7 @@ public class NaiveMatrixMultiplication {
             double medianTime = median(times);
             double stdTime = std(times, meanTime);
 
-            System.out.printf("✅ Stats for size %d: mean=%.6f, median=%.6f, std=%.6f%n", size, meanTime, medianTime, stdTime);
+            System.out.printf("[OK] Stats for size %d: mean=%.6f, median=%.6f, std=%.6f%n", size, meanTime, medianTime, stdTime);
 
             results.add(new String[]{
                 String.valueOf(size),
@@ -140,6 +140,6 @@ public class NaiveMatrixMultiplication {
         }
 
         saveResultsToCSV(results);
-        System.out.println("\n✅ Process completed successfully");
+        System.out.println("\n[OK] Process completed successfully");
     }
 }

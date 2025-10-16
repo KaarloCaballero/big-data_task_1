@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
+#include <windows.h>
 #include <math.h>
+#include <unistd.h>
 
 #define ITERATIONS 100
 #define PAUSE_EVERY 20
@@ -15,21 +15,33 @@
 
 const char *matrix_dir = "matrices";
 const char *csv_file = "results/c_results.csv";
-const int matrix_sizes[] = {10, 100};
+const int matrix_sizes[] = {10, 100, 1000, 10000};
 const int num_sizes = sizeof(matrix_sizes)/sizeof(matrix_sizes[0]);
+
+// --- High precision timer using QueryPerformanceCounter ---
+double get_time_seconds() {
+    static LARGE_INTEGER freq;
+    static int initialized = 0;
+    if (!initialized) {
+        QueryPerformanceFrequency(&freq);
+        initialized = 1;
+    }
+    LARGE_INTEGER t;
+    QueryPerformanceCounter(&t);
+    return (double)t.QuadPart / freq.QuadPart;
+}
 
 // --- Function to read binary matrix (safe contiguous allocation) ---
 int **read_matrix_from_binary(const char *filename, int size) {
     FILE *f = fopen(filename, "rb");
     if (!f) {
-        fprintf(stderr, "❌ Couldn't open file '%s'\n", filename);
+        fprintf(stderr, "[ERROR] Couldn't open file '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
-    // Allocate contiguous memory for all elements
     int *data = malloc(size * size * sizeof(int));
     if (!data) {
-        fprintf(stderr, "❌ Memory allocation failed for '%s'\n", filename);
+        fprintf(stderr, "[ERROR] Memory allocation failed for '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -37,14 +49,13 @@ int **read_matrix_from_binary(const char *filename, int size) {
     fclose(f);
 
     if (read_count != (size_t)(size * size)) {
-        fprintf(stderr, "❌ Could not read matrix from '%s' (read %zu of %d)\n", filename, read_count, size * size);
+        fprintf(stderr, "[ERROR] Could not read matrix from '%s' (read %zu of %d)\n", filename, read_count, size * size);
         exit(EXIT_FAILURE);
     }
 
-    // Create an array of row pointers
     int **matrix = malloc(size * sizeof(int *));
     if (!matrix) {
-        fprintf(stderr, "❌ Memory allocation failed for row pointers\n");
+        fprintf(stderr, "[ERROR] Memory allocation failed for row pointers\n");
         free(data);
         exit(EXIT_FAILURE);
     }
@@ -53,7 +64,7 @@ int **read_matrix_from_binary(const char *filename, int size) {
         matrix[i] = &data[i * size];
     }
 
-    printf("✅ Loaded matrix from '%s' (%dx%d)\n", filename, size, size);
+    printf("[OK] Loaded matrix from '%s' (%dx%d)\n", filename, size, size);
     return matrix;
 }
 
@@ -63,16 +74,15 @@ double naive_matrix_multiplication(int **A, int **B, int n) {
     int **C = malloc(n * sizeof(int *));
     for (int i = 0; i < n; i++) C[i] = &data_C[i * n];
 
-    struct timespec start, end;
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    double start = get_time_seconds();
 
     for (int i = 0; i < n; i++)
         for (int j = 0; j < n; j++)
             for (int k = 0; k < n; k++)
                 C[i][j] += A[i][k] * B[k][j];
 
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    double elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1e9;
+    double end = get_time_seconds();
+    double elapsed = end - start;
 
     free(data_C);
     free(C);
@@ -85,7 +95,7 @@ void warm_up(int **A, int **B, int size, int iterations, int pause_sec) {
     printf("\n=== Warm-up: %d iterations for size %dx%d ===\n", iterations, size, size);
     for (int i = 1; i <= iterations; i++) {
         naive_matrix_multiplication(A, B, size);
-        printf("✅ Warm-up iteration %d completed\n", i);
+        printf("[OK] Warm-up iteration %d completed\n", i);
         sleep(pause_sec);
     }
 }
@@ -101,20 +111,15 @@ double median(double *data, int n) {
     double *copy = malloc(n * sizeof(double));
     memcpy(copy, data, n * sizeof(double));
 
-    // Simple bubble sort (fine for small n)
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - 1 - i; j++) {
+    for (int i = 0; i < n - 1; i++)
+        for (int j = 0; j < n - 1 - i; j++)
             if (copy[j] > copy[j + 1]) {
                 double tmp = copy[j];
                 copy[j] = copy[j + 1];
                 copy[j + 1] = tmp;
             }
-        }
-    }
 
-    double med = (n % 2 == 0)
-                     ? (copy[n / 2 - 1] + copy[n / 2]) / 2.0
-                     : copy[n / 2];
+    double med = (n % 2 == 0) ? (copy[n / 2 - 1] + copy[n / 2]) / 2.0 : copy[n / 2];
     free(copy);
     return med;
 }
@@ -129,7 +134,7 @@ double std_dev(double *data, int n, double mean_val) {
 void save_results_to_csv(char results[][7][256], int num_rows) {
     FILE *f = fopen(csv_file, "w");
     if (!f) {
-        perror("❌ Couldn't open CSV file");
+        perror("[ERROR] Couldn't open CSV file");
         exit(EXIT_FAILURE);
     }
 
@@ -140,16 +145,15 @@ void save_results_to_csv(char results[][7][256], int num_rows) {
                 results[i][3], results[i][4], results[i][5], results[i][6]);
     }
     fclose(f);
-    printf("\n✅ All results saved to '%s'\n", csv_file);
+    printf("\n[OK] All results saved to '%s'\n", csv_file);
 }
 
 int main() {
-    printf("🚀 Starting C matrix multiplication benchmark...\n");
+    printf("[OK] Starting C matrix multiplication benchmark...\n");
 
     char results[100][7][256];
     int result_idx = 0;
 
-    // --- Warm-up on largest matrix ---
     int max_size = matrix_sizes[num_sizes - 1];
     char file_a_warm[256], file_b_warm[256];
     snprintf(file_a_warm, sizeof(file_a_warm), "%s/A_%d.bin", matrix_dir, max_size);
@@ -159,7 +163,6 @@ int main() {
     int **matrix_b_warm = read_matrix_from_binary(file_b_warm, max_size);
     warm_up(matrix_a_warm, matrix_b_warm, max_size, WARMUP_ITER, WARMUP_PAUSE);
 
-    // --- Main benchmarking loop ---
     for (int s = 0; s < num_sizes; s++) {
         int size = matrix_sizes[s];
         char file_a[256], file_b[256];
@@ -180,7 +183,7 @@ int main() {
             times[i] = naive_matrix_multiplication(matrix_a, matrix_b, size);
 
             if ((i + 1) % PAUSE_EVERY == 0 && (i + 1) != ITERATIONS) {
-                printf("💤 Pausing for %d seconds to cool off the CPU...\n", PAUSE_DURATION);
+                printf("[OK] Pausing for %d seconds to cool off the CPU...\n", PAUSE_DURATION);
                 sleep(PAUSE_DURATION);
             }
         }
@@ -189,30 +192,27 @@ int main() {
         double median_time = median(times, ITERATIONS);
         double std_time = std_dev(times, ITERATIONS, mean_time);
 
-        printf("✅ Stats for size %d: mean=%.6f, median=%.6f, std=%.6f\n",
+        printf("[OK] Stats for size %d: mean=%.9f, median=%.9f, std=%.9f\n",
                size, mean_time, median_time, std_time);
 
         snprintf(results[result_idx][0], 256, "%d", size);
         snprintf(results[result_idx][1], 256, "%s", file_a);
         snprintf(results[result_idx][2], 256, "%s", file_b);
-        snprintf(results[result_idx][3], 256, "%f", mean_time);
-        snprintf(results[result_idx][4], 256, "%f", median_time);
-        snprintf(results[result_idx][5], 256, "%f", std_time);
+        snprintf(results[result_idx][3], 256, "%.9f", mean_time);
+        snprintf(results[result_idx][4], 256, "%.9f", median_time);
+        snprintf(results[result_idx][5], 256, "%.9f", std_time);
         snprintf(results[result_idx][6], 256, "%s", LANGUAGE);
         result_idx++;
 
-        // Correct memory cleanup (contiguous)
         free(matrix_a[0]); free(matrix_a);
         free(matrix_b[0]); free(matrix_b);
     }
 
-    // Cleanup warm-up matrices
     free(matrix_a_warm[0]); free(matrix_a_warm);
     free(matrix_b_warm[0]); free(matrix_b_warm);
 
-    // --- Save results ---
     save_results_to_csv(results, result_idx);
 
-    printf("\n✅ Process completed successfully!\n");
+    printf("\n[OK] Process completed successfully!\n");
     return 0;
 }

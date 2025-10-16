@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Global constants
-MATRIX_SIZES = [10, 100] #[10, 100, 1_000, 10_000]
+MATRIX_SIZES = [10, 100, 1_000, 10_000]
 RESULTS_DIR = "results"
 GRAPHS_DIR = "graphs"
 MATRIX_DIR = "matrices"
@@ -44,39 +44,50 @@ def run_file(cmd, lang):
 
 def execute_naive_matrix_multiplication():
     file_name = "NaiveMatrixMultiplication"
-    #run_file(fr"C:/Python313/python.exe c:/Users/valko/VSCodeProjects/big-data_task_1/{file_name}.py", "Python")
-    #run_file(fr"java -Xmx4G {file_name}", "Java")
+    run_file(fr"C:/Python313/python.exe c:/Users/valko/VSCodeProjects/big-data_task_1/{file_name}.py", "Python")
+    run_file(fr"java -Xmx4G {file_name}", "Java")
     run_file(fr".\c_{file_name}.exe", "C")
-    #run_file(fr".\rust_{file_name}.exe", "Rust")
+    run_file(fr".\rust_{file_name}.exe", "Rust")
     return 0
 
-def plot_results(csv_file="results/python_results.csv", graphs_dir="graphs"):
+def plot_results(csv_files=None, graphs_dir="graphs", check_interval=1):
     """
-    Reads benchmark results from a CSV file and generates plots.
+    Waits for all CSV files to exist, then generates benchmark graphs.
     
-    - One graph per language: shows Mean, Median, and Std over matrix sizes.
-    - Three comparison graphs: Mean, Median, and Std across all languages.
+    Generates:
+    1- One graph per language (Mean, Median, Std)
+    2- Comparison graphs for Mean and Median across languages
     
     Parameters:
-        csv_file (str): Path to the CSV file with benchmark results.
-        graphs_dir (str): Directory where graphs will be saved.
+        csv_files (dict): Mapping of language -> CSV file path
+        graphs_dir (str): Directory to save the graphs
+        check_interval (int): Seconds to wait between checking for files
     """
-    # Ensure output directory exists
+    if csv_files is None:
+        csv_files = {
+            "Python": "results/python_results.csv",
+            "Java": "results/java_results.csv",
+            "C": "results/c_results.csv",
+            "Rust": "results/rust_results.csv"
+        }
+
+    # --- Wait until all CSVs exist ---
+    print("⏳ Waiting for all CSV files to be generated...")
+    while not all(os.path.exists(f) for f in csv_files.values()):
+        time.sleep(check_interval)
+    print("✅ All CSV files found!")
+
     os.makedirs(graphs_dir, exist_ok=True)
 
-    # Read CSV
-    df = pd.read_csv(csv_file)
+    # --- Read each CSV into a DataFrame ---
+    dfs = {lang: pd.read_csv(path) for lang, path in csv_files.items()}
 
-    # Get list of languages
-    languages = df['Language'].unique()
-
-    # --- One graph per language ---
-    for lang in languages:
-        df_lang = df[df['Language'] == lang]
+    # --- Per-language graphs ---
+    for lang, df in dfs.items():
         plt.figure(figsize=(8, 6))
-        plt.plot(df_lang['Size'], df_lang['Mean Time (s)'], marker='o', label='Mean')
-        plt.plot(df_lang['Size'], df_lang['Median Time (s)'], marker='s', label='Median')
-        plt.plot(df_lang['Size'], df_lang['Std Dev (s)'], marker='^', label='Std Dev')
+        plt.plot(df['Size'], df['Mean Time (s)'], marker='o', label='Mean')
+        plt.plot(df['Size'], df['Median Time (s)'], marker='s', label='Median')
+        plt.plot(df['Size'], df['Std Dev (s)'], marker='^', label='Std Dev')
         plt.xscale('log')
         plt.yscale('log')
         plt.xlabel("Matrix Size")
@@ -85,16 +96,15 @@ def plot_results(csv_file="results/python_results.csv", graphs_dir="graphs"):
         plt.legend()
         plt.grid(True, which='both', linestyle='--', alpha=0.5)
         plt.tight_layout()
-        plt.savefig(os.path.join(graphs_dir, f"{lang}_benchmark.png"))
+        plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_graph.png"))
         plt.close()
 
-    # --- Comparison graphs across languages ---
-    metrics = ['Mean Time (s)', 'Median Time (s)', 'Std Dev (s)']
+    # --- Comparison graphs ---
+    metrics = ['Mean Time (s)', 'Median Time (s)']
     for metric in metrics:
         plt.figure(figsize=(8, 6))
-        for lang in languages:
-            df_lang = df[df['Language'] == lang]
-            plt.plot(df_lang['Size'], df_lang[metric], marker='o', label=lang)
+        for lang, df in dfs.items():
+            plt.plot(df['Size'], df[metric], marker='o', label=lang)
         plt.xscale('log')
         plt.yscale('log')
         plt.xlabel("Matrix Size")
@@ -104,10 +114,10 @@ def plot_results(csv_file="results/python_results.csv", graphs_dir="graphs"):
         plt.grid(True, which='both', linestyle='--', alpha=0.5)
         plt.tight_layout()
         safe_metric = metric.replace(" ", "_").replace("(", "").replace(")", "")
-        plt.savefig(os.path.join(graphs_dir, f"comparison_{safe_metric}.png"))
+        plt.savefig(os.path.join(graphs_dir, f"{safe_metric.lower()}_comparison_graph.png"))
         plt.close()
 
-    print(f"✅ All graphs saved in '{graphs_dir}'")
+    print(f"[OK] All graphs saved in '{graphs_dir}'")
 
 
 

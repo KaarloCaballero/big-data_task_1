@@ -14,7 +14,7 @@ Results are saved into a CSV file.
 """
 
 # --- Parameters ---
-matrix_sizes = [10, 100]
+matrix_sizes = [10, 100, 1_000, 10_000]
 iterations = 100
 pause_every = 20  # Pause every 20 iterations
 pause_duration = 10  # Pause duration in seconds
