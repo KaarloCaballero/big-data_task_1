@@ -4,9 +4,10 @@ import os
 import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 # Global constants
-MATRIX_SIZES = [10, 100, 1_000, 10_000]
+MATRIX_SIZES = [10, 100] #[10, 100, 1_000, 10_000]
 RESULTS_DIR = "results"
 GRAPHS_DIR = "graphs"
 MATRIX_DIR = "matrices"
@@ -44,25 +45,77 @@ def run_file(cmd, lang):
 
 def execute_naive_matrix_multiplication():
     file_name = "NaiveMatrixMultiplication"
-    run_file(fr"C:/Python313/python.exe c:/Users/valko/VSCodeProjects/big-data_task_1/{file_name}.py", "Python")
-    run_file(fr"java -Xmx4G {file_name}", "Java")
-    run_file(fr".\c_{file_name}.exe", "C")
-    run_file(fr".\rust_{file_name}.exe", "Rust")
+    #run_file(fr"C:/Python313/python.exe c:/Users/valko/VSCodeProjects/big-data_task_1/{file_name}.py", "Python")
+    #run_file(fr"java -Xmx4G {file_name}", "Java")
+    #run_file(fr".\c_{file_name}.exe", "C")
+    run_file(fr".\naive_matrix\target\release\naive_matrix.exe", "Rust") 
     return 0
+def generate_time_graph(df, lang, graphs_dir):
+    plt.figure(figsize=(8, 6))
+    plt.plot(df['Size'], df['Mean Time (s)'], marker='o', label='Mean')
+    plt.plot(df['Size'], df['Median Time (s)'], marker='s', label='Median')
+    plt.plot(df['Size'], df['Std Dev (s)'], marker='^', label='Std Dev')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel("Matrix Size")
+    plt.ylabel("Time (s)")
+    plt.title(f"{lang} Benchmark - Time")
+    plt.legend()
+    plt.grid(True, which='both', linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_time.png"))
+    plt.close()
+
+def generate_cpu_graph(df, lang, graphs_dir):
+    plt.figure(figsize=(8, 6))
+    plt.plot(df['Size'], df['Mean CPU (%)'], marker='o', label='Mean')
+    plt.plot(df['Size'], df['Median CPU (%)'], marker='s', label='Median')
+    plt.plot(df['Size'], df['Std CPU (%)'], marker='^', label='Std')
+    plt.xlabel("Matrix Size")
+    plt.ylabel("CPU Usage (%)")
+    plt.title(f"{lang} Benchmark - CPU Usage")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_cpu.png"))
+    plt.close()
+
+
+def generate_memory_graph(df, lang, graphs_dir):
+    plt.figure(figsize=(8, 6))
+    plt.plot(df['Size'], df['Mean Memory (MB)'], marker='o', label='Mean')
+    plt.plot(df['Size'], df['Median Memory (MB)'], marker='s', label='Median')
+    plt.plot(df['Size'], df['Std Memory (MB)'], marker='^', label='Std')
+    plt.xlabel("Matrix Size")
+    plt.ylabel("Memory Usage (MB)")
+    plt.title(f"{lang} Benchmark - Memory Usage")
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_memory.png"))
+    plt.close()
+
+def generate_comparison_graphs(dfs, graphs_dir):
+    metrics = ['Mean Time (s)', 'Median Time (s)', 'Mean CPU (%)', 'Median CPU (%)', 'Mean Memory (MB)', 'Median Memory (MB)']
+    for metric in metrics:
+        plt.figure(figsize=(8, 6))
+        for lang, df in dfs.items():
+            plt.plot(df['Size'], df[metric], marker='o', label=lang)
+        plt.xscale('log')
+        plt.yscale('log')
+        plt.xlabel("Matrix Size")
+        plt.ylabel(metric)
+        plt.title(f"{metric} Comparison Across Languages")
+        plt.legend()
+        plt.grid(True, which='both', linestyle='--', alpha=0.5)
+        plt.tight_layout()
+        safe_metric = metric.replace(" ", "_").replace("(", "").replace(")", "")
+        plt.savefig(os.path.join(graphs_dir, f"{safe_metric.lower()}_comparison_graph.png"))
+        plt.close()
+
+    print(f"[OK] All graphs saved in '{graphs_dir}'")
 
 def plot_results(csv_files=None, graphs_dir="graphs", check_interval=1):
-    """
-    Waits for all CSV files to exist, then generates benchmark graphs.
-    
-    Generates:
-    1- One graph per language (Mean, Median, Std)
-    2- Comparison graphs for Mean and Median across languages
-    
-    Parameters:
-        csv_files (dict): Mapping of language -> CSV file path
-        graphs_dir (str): Directory to save the graphs
-        check_interval (int): Seconds to wait between checking for files
-    """
     if csv_files is None:
         csv_files = {
             "Python": "results/python_results.csv",
@@ -84,40 +137,13 @@ def plot_results(csv_files=None, graphs_dir="graphs", check_interval=1):
 
     # --- Per-language graphs ---
     for lang, df in dfs.items():
-        plt.figure(figsize=(8, 6))
-        plt.plot(df['Size'], df['Mean Time (s)'], marker='o', label='Mean')
-        plt.plot(df['Size'], df['Median Time (s)'], marker='s', label='Median')
-        plt.plot(df['Size'], df['Std Dev (s)'], marker='^', label='Std Dev')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.xlabel("Matrix Size")
-        plt.ylabel("Time (s)")
-        plt.title(f"{lang} Benchmark")
-        plt.legend()
-        plt.grid(True, which='both', linestyle='--', alpha=0.5)
-        plt.tight_layout()
-        plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_graph.png"))
-        plt.close()
+        generate_time_graph(df, lang, graphs_dir)
+        generate_cpu_graph(df, lang, graphs_dir)
+        generate_memory_graph(df, lang, graphs_dir)
 
     # --- Comparison graphs ---
-    metrics = ['Mean Time (s)', 'Median Time (s)']
-    for metric in metrics:
-        plt.figure(figsize=(8, 6))
-        for lang, df in dfs.items():
-            plt.plot(df['Size'], df[metric], marker='o', label=lang)
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.xlabel("Matrix Size")
-        plt.ylabel(metric)
-        plt.title(f"{metric} Comparison Across Languages")
-        plt.legend()
-        plt.grid(True, which='both', linestyle='--', alpha=0.5)
-        plt.tight_layout()
-        safe_metric = metric.replace(" ", "_").replace("(", "").replace(")", "")
-        plt.savefig(os.path.join(graphs_dir, f"{safe_metric.lower()}_comparison_graph.png"))
-        plt.close()
+    generate_comparison_graphs(dfs, graphs_dir)
 
-    print(f"[OK] All graphs saved in '{graphs_dir}'")
 
 
 
