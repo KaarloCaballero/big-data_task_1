@@ -34,19 +34,21 @@ def read_matrix_from_binary(filename, size):
     except ValueError:
         raise ValueError(f"❌ Could not reshape file '{filename}' into {size}x{size}")
 
-
 def naive_matrix_multiplication(matrix_a, matrix_b, n):
     """Performs naive matrix multiplication of two square matrices and returns elapsed time."""
-    C = [[0 for _ in range(n)] for _ in range(n)]
-    start = time.perf_counter()
-    for i in range(n):
-        for j in range(n):
-            for k in range(n):
-                C[i][j] += matrix_a[i][k] * matrix_b[k][j]
-    end = time.perf_counter()
-    return end - start
+    try:
+        C = [[0 for _ in range(n)] for _ in range(n)]
+        start = time.perf_counter()
+        for i in range(n):
+            for j in range(n):
+                for k in range(n):
+                    C[i][j] += matrix_a[i][k] * matrix_b[k][j]
+        end = time.perf_counter()
+        return end - start
+    except RuntimeError:
+        raise RuntimeError("❌ Couldn't perform multiplication")
 
-def warm_up(matrix_a, matrix_b, n, iterations=3, pause=2):
+def warm_up(matrix_a, matrix_b, matrix_size, iterations=5, pause=2):
     """
     Performs warm-up multiplications for the largest matrix size to stabilize CPU/cache/threads.
     
@@ -57,30 +59,39 @@ def warm_up(matrix_a, matrix_b, n, iterations=3, pause=2):
         iterations (int): Number of warm-up iterations
         pause (float): Pause in seconds between warm-up iterations
     """
-    print(f"\n=== Warm-up: {iterations} iterations for size {n}x{n} ===")
-    for i in range(1, iterations + 1):
-        naive_matrix_multiplication(matrix_a, matrix_b, n)
-        print(f"💨 Warm-up iteration {i} completed")
-        time.sleep(pause)
-
+    try:
+        print(f"\n=== Warm-up: {iterations} iterations for size {matrix_size}x{matrix_size} ===")
+        for i in range(1, iterations + 1):
+            naive_matrix_multiplication(matrix_a, matrix_b, matrix_size)
+            print(f"✅ Warm-up iteration {i} completed")
+            time.sleep(pause)
+    except RuntimeError:
+        raise RuntimeError("❌ Couldn't perform warm up")
 
 def save_results_to_csv(results):
     """Saves the matrix multiplication results to a CSV file."""
-    os.makedirs(os.path.dirname(csv_file), exist_ok=True)
-    print(f"\nSaving all results to {csv_file}...")
-    with open(csv_file, mode="w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([
-            "Size", "Matrix A File", "Matrix B File",
-            "Mean Time (s)", "Median Time (s)", "Std Dev (s)", "Language"
-        ])
-        writer.writerows(results)
-    print("✅ All results saved successfully")
+    try:
+        os.makedirs(os.path.dirname(csv_file), exist_ok=True)
+        print(f"\nSaving all results to {csv_file}...")
+        with open(csv_file, mode="w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "Size", "Matrix A File", "Matrix B File",
+                "Mean Time (s)", "Median Time (s)", "Std Dev (s)", "Language"
+            ])
+            writer.writerows(results)
+        print("✅ All results saved successfully")
+    except RuntimeError:
+        raise RuntimeError("❌ Couldn't save results to CSV")
 
 
 # --- Main Execution ---
 if __name__ == "__main__":
     results = []
+
+    matrix_a_warm_up = read_matrix_from_binary(os.path.join(matrix_dir, f"A_{max(matrix_sizes)}.bin"), max(matrix_sizes))
+    matrix_b_warm_up = read_matrix_from_binary(os.path.join(matrix_dir, f"B_{max(matrix_sizes)}.bin"), max(matrix_sizes))
+    warm_up(matrix_a_warm_up, matrix_b_warm_up, max(matrix_sizes))
 
     for size in matrix_sizes:
         file_a = os.path.join(matrix_dir, f"A_{size}.bin")
@@ -92,6 +103,7 @@ if __name__ == "__main__":
 
         # Run multiple iterations and collect execution times
         times = []
+        print(f"\n=== Multiplicating matrices of size {size}x{size} ===")
         print(f"Running {iterations} iterations with a {pause_duration}s pause every {pause_every} iterations...")
 
         for i in range(1, iterations + 1):
@@ -115,4 +127,4 @@ if __name__ == "__main__":
 
     # Save results to CSV
     save_results_to_csv(results)
-    print("✅ Process completed successfully")
+    print("\n✅ Process completed successfully")
