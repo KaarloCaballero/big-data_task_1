@@ -9,8 +9,8 @@ Matrix Multiplication Benchmark Script with CPU and Memory Tracking
 """
 
 # --- Parameters ---
-matrix_sizes = [10, 100] #[10, 100, 1_000, 10_000]
-iterations = 10
+matrix_sizes = [10, 100, 1_000, 10_000]  # [10, 100, 1_000, 10_000]
+iterations = 100
 pause_every = 20  # Pause every 20 iterations
 pause_duration = 10  # Pause duration in seconds
 csv_file = "results/python_results.csv"
@@ -60,9 +60,9 @@ def save_results_to_csv(results):
         writer = csv.writer(f)
         writer.writerow([
             "Size", "Matrix A File", "Matrix B File",
-            "Mean Time (s)", "Median Time (s)", "Std Dev (s)",
-            "Mean CPU (%)", "Median CPU (%)", "Std Dev CPU (%)",
-            "Mean Memory (MB)", "Median Memory (MB)", "Std Dev Memory (MB)",
+            "Mean Time (s)", "Median Time (s)", "Std Time (s)",
+            "Mean CPU (%)", "Median CPU (%)", "Std CPU (%)",
+            "Mean Memory (MB)", "Median Memory (MB)", "Std Memory (MB)",
             "Language"
         ])
         writer.writerows(results)
@@ -72,8 +72,10 @@ def save_results_to_csv(results):
 if __name__ == "__main__":
     results = []
 
-    matrix_a_warm_up = read_matrix_from_binary(os.path.join(matrix_dir, f"A_{max(matrix_sizes)}.bin"), max(matrix_sizes))
-    matrix_b_warm_up = read_matrix_from_binary(os.path.join(matrix_dir, f"B_{max(matrix_sizes)}.bin"), max(matrix_sizes))
+    matrix_a_warm_up = read_matrix_from_binary(
+        os.path.join(matrix_dir, f"A_{max(matrix_sizes)}.bin"), max(matrix_sizes))
+    matrix_b_warm_up = read_matrix_from_binary(
+        os.path.join(matrix_dir, f"B_{max(matrix_sizes)}.bin"), max(matrix_sizes))
     warm_up(matrix_a_warm_up, matrix_b_warm_up, max(matrix_sizes))
 
     for size in matrix_sizes:
@@ -130,7 +132,7 @@ if __name__ == "__main__":
         # Append results
         results.append((
             size, file_a, file_b,
-            mean_time, median_time, std_time,
+            mean_time, median_time, std_time,  # <--- Std Time (s) now
             mean_cpu, median_cpu, std_cpu,
             mean_mem, median_mem, std_mem,
             language

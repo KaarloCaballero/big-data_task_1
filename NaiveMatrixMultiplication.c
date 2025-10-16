@@ -6,7 +6,7 @@
 #include <math.h>
 #include <psapi.h>
 
-#define ITERATIONS 10
+#define ITERATIONS 100
 #define PAUSE_EVERY 20
 #define PAUSE_DURATION 10
 #define WARMUP_ITER 5
@@ -15,7 +15,7 @@
 
 const char *matrix_dir = "matrices";
 const char *csv_file = "results/c_results.csv";
-const int matrix_sizes[] = {10, 100}; // adjust as needed
+const int matrix_sizes[] = {10, 100, 1000, 10000}; // adjust as needed
 const int num_sizes = sizeof(matrix_sizes)/sizeof(matrix_sizes[0]);
 
 // --- High precision timer using QueryPerformanceCounter ---
@@ -111,7 +111,10 @@ double get_memory_usage_mb() {
 void save_results_to_csv(char results[][13][256], int num_rows) {
     FILE *f = fopen(csv_file,"w");
     if(!f){ perror("[ERROR] Couldn't open CSV file"); exit(EXIT_FAILURE); }
-    fprintf(f,"Size,Matrix A File,Matrix B File,Mean Time (s),Median Time (s),Std Dev (s),Mean CPU (%%),Median CPU (%%),Std CPU (%%),Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language\n");
+
+    // Updated header
+    fprintf(f,"Size,Matrix A File,Matrix B File,Mean Time (s),Median Time (s),Std Time (s),Mean CPU (%%),Median CPU (%%),Std CPU (%%),Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language\n");
+
     for(int i=0;i<num_rows;i++){
         for(int j=0;j<13;j++){
             fprintf(f,"%s%s", results[i][j], (j<12)?",":"\n");

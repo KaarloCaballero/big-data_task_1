@@ -10,8 +10,8 @@ import com.sun.management.OperatingSystemMXBean;
 public class NaiveMatrixMultiplication {
 
     // --- Parameters ---
-    static int[] matrixSizes = {10, 100}; // Adjust sizes as needed
-    static int iterations = 10;           // Adjust for testing
+    static int[] matrixSizes = {10, 100, 1000, 10000}; // Adjust sizes as needed
+    static int iterations = 100;           // Adjust for testing
     static int pauseEvery = 20;           // Pause every 20 iterations
     static int pauseDuration = 10;        // Pause duration in seconds
     static String language = "Java";
@@ -62,10 +62,12 @@ public class NaiveMatrixMultiplication {
         File file = new File(csvFile);
         file.getParentFile().mkdirs();
         try (PrintWriter writer = new PrintWriter(file)) {
+            // Updated CSV header
             writer.println("Size,Matrix A File,Matrix B File,"
-                + "Mean Time (s),Median Time (s),Std Dev (s),"
-                + "Mean CPU (%),Median CPU (%),Std Dev CPU (%),"
-                + "Mean Memory (MB),Median Memory (MB),Std Dev Memory (MB),Language");
+                + "Mean Time (s),Median Time (s),Std Time (s),"
+                + "Mean CPU (%),Median CPU (%),Std CPU (%),"
+                + "Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language");
+            
             for (String[] row : results)
                 writer.println(String.join(",", row));
         }

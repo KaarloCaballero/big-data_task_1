@@ -8,8 +8,8 @@ use std::time::{Duration, Instant};
 use sysinfo::{System, SystemExt, ProcessExt};
 
 // --- Parameters ---
-const MATRIX_SIZES: [usize; 2] = [10, 100]; // adjust as needed
-const ITERATIONS: usize = 10;
+const MATRIX_SIZES: [usize; 4] = [10, 100, 1000, 10000]; // adjust as needed
+const ITERATIONS: usize = 100;
 const PAUSE_EVERY: usize = 20;
 const PAUSE_DURATION: u64 = 10;
 const CSV_FILE: &str = "results/rust_results.csv";
@@ -90,8 +90,9 @@ fn save_results_to_csv(results: &Vec<(usize,String,String,f64,f64,f64,f64,f64,f6
     let file = File::create(path).unwrap();
     let mut writer = BufWriter::new(file);
 
+    // --- Updated column names ---
     writeln!(writer,
-        "Size,Matrix A File,Matrix B File,Mean Time (s),Median Time (s),Std Dev (s),Mean CPU (%),Median CPU (%),Std CPU (%),Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language"
+        "Size,Matrix A File,Matrix B File,Mean Time (s),Median Time (s),Std Time (s),Mean CPU (%),Median CPU (%),Std CPU (%),Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language"
     ).unwrap();
 
     for r in results {
@@ -170,7 +171,7 @@ fn main() {
 
         results.push((
             size, file_a.clone(), file_b.clone(),
-            mean_time, median_time, std_time,
+            mean_time, median_time, std_time,  // Std Time (s)
             mean_cpu, median_cpu, std_cpu,
             mean_mem, median_mem, std_mem,
             LANGUAGE.to_string()
