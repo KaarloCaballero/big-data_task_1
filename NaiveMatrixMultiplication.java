@@ -10,8 +10,8 @@ import com.sun.management.OperatingSystemMXBean;
 public class NaiveMatrixMultiplication {
 
     // --- Parameters ---
-    static int[] matrixSizes = {10, 100, 1000, 10000}; // Adjust sizes as needed
-    static int iterations = 100;           // Adjust for testing
+    static int[] matrixSizes = {10, 100, 1000, 2000}; // Adjust sizes as needed
+    static int iterations = 50;           // Adjust for testing
     static int pauseEvery = 20;           // Pause every 20 iterations
     static int pauseDuration = 10;        // Pause duration in seconds
     static String language = "Java";

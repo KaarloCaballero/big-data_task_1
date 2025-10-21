@@ -9,8 +9,8 @@ Matrix Multiplication Benchmark Script with CPU and Memory Tracking
 """
 
 # --- Parameters ---
-matrix_sizes = [10, 100, 1_000, 10_000]  # [10, 100, 1_000, 10_000]
-iterations = 100
+matrix_sizes = [10, 100, 1_000, 2_000]  
+iterations = 50
 pause_every = 20  # Pause every 20 iterations
 pause_duration = 10  # Pause duration in seconds
 csv_file = "results/python_results.csv"

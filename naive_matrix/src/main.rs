@@ -8,8 +8,8 @@ use std::time::{Duration, Instant};
 use sysinfo::{System, SystemExt, ProcessExt};
 
 // --- Parameters ---
-const MATRIX_SIZES: [usize; 4] = [10, 100, 1000, 10000]; // adjust as needed
-const ITERATIONS: usize = 100;
+const MATRIX_SIZES: [usize; 4] = [10, 100, 1000, 2000]; // adjust as needed
+const ITERATIONS: usize = 50;
 const PAUSE_EVERY: usize = 20;
 const PAUSE_DURATION: u64 = 10;
 const CSV_FILE: &str = "results/rust_results.csv";

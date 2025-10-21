@@ -5,3 +5,6 @@
 c_NaiveMatrixMultiplication.exe
 NaiveMatrixMultiplication.class
 rust_NaiveMatrixMultiplication.exe
+naive_matrix/target/release/naive_matrix.exe
+naive_matrix/target/release/naive_matrix.exe
+naive_matrix/target/release/naive_matrix.pdb

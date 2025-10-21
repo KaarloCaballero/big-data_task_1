@@ -6,16 +6,16 @@
 #include <math.h>
 #include <psapi.h>
 
-#define ITERATIONS 100
+#define ITERATIONS 50
 #define PAUSE_EVERY 20
 #define PAUSE_DURATION 10
-#define WARMUP_ITER 5
+#define WARMUP_ITER 3 
 #define WARMUP_PAUSE 2
 #define LANGUAGE "C"
 
 const char *matrix_dir = "matrices";
 const char *csv_file = "results/c_results.csv";
-const int matrix_sizes[] = {10, 100, 1000, 10000}; // adjust as needed
+const int matrix_sizes[] = {10, 100, 1000, 2000};
 const int num_sizes = sizeof(matrix_sizes)/sizeof(matrix_sizes[0]);
 
 // --- High precision timer using QueryPerformanceCounter ---

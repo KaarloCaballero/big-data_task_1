@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 # Global constants
-MATRIX_SIZES = [10, 100, 1_000, 10_000]
+MATRIX_SIZES = [10, 100, 1_000, 2_000]
 RESULTS_DIR = "results"
 GRAPHS_DIR = "graphs"
 MATRIX_DIR = "matrices"
