@@ -1,5 +1,4 @@
 /matrices
-/graphs
 /results
 .vscode/settings.json
 c_NaiveMatrixMultiplication.exe
@@ -8,3 +7,4 @@ rust_NaiveMatrixMultiplication.exe
 naive_matrix/target/release/naive_matrix.exe
 naive_matrix/target/release/naive_matrix.exe
 naive_matrix/target/release/naive_matrix.pdb
+naive_matrix/target/release/naive_matrix.exe

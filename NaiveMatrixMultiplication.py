@@ -9,7 +9,7 @@ Matrix Multiplication Benchmark Script with CPU and Memory Tracking
 """
 
 # --- Parameters ---
-matrix_sizes = [10, 100, 1_000, 2_000]  
+matrix_sizes = [10, 100, 1_000]  
 iterations = 50
 pause_every = 20  # Pause every 20 iterations
 pause_duration = 10  # Pause duration in seconds
@@ -17,7 +17,7 @@ csv_file = "results/python_results.csv"
 language = "Python"
 matrix_dir = "matrices"
 
-process = psutil.Process(os.getpid())  # Current Python process
+process = psutil.Process(os.getpid())
 
 def read_matrix_from_binary(filename, size):
     """Reads a square matrix from a binary file saved with numpy.tofile()."""
@@ -44,14 +44,6 @@ def naive_matrix_multiplication(matrix_a, matrix_b, n):
     except RuntimeError:
         raise RuntimeError("❌ Couldn't perform multiplication")
 
-def warm_up(matrix_a, matrix_b, matrix_size, iterations=5, pause=2):
-    """Performs warm-up multiplications for the largest matrix size."""
-    print(f"\n=== Warm-up: {iterations} iterations for size {matrix_size}x{matrix_size} ===")
-    for i in range(1, iterations + 1):
-        naive_matrix_multiplication(matrix_a, matrix_b, matrix_size)
-        print(f"✅ Warm-up iteration {i} completed")
-        time.sleep(pause)
-
 def save_results_to_csv(results):
     """Saves the matrix multiplication results to a CSV file."""
     os.makedirs(os.path.dirname(csv_file), exist_ok=True)
@@ -71,12 +63,6 @@ def save_results_to_csv(results):
 # --- Main Execution ---
 if __name__ == "__main__":
     results = []
-
-    matrix_a_warm_up = read_matrix_from_binary(
-        os.path.join(matrix_dir, f"A_{max(matrix_sizes)}.bin"), max(matrix_sizes))
-    matrix_b_warm_up = read_matrix_from_binary(
-        os.path.join(matrix_dir, f"B_{max(matrix_sizes)}.bin"), max(matrix_sizes))
-    warm_up(matrix_a_warm_up, matrix_b_warm_up, max(matrix_sizes))
 
     for size in matrix_sizes:
         file_a = os.path.join(matrix_dir, f"A_{size}.bin")
@@ -103,8 +89,8 @@ if __name__ == "__main__":
 
             elapsed = time.perf_counter() - start_time
             end_mem = process.memory_info().rss
-            cpu = process.cpu_percent(interval=None)  # Instant CPU % after operation
-            mem = (end_mem - start_mem) / (1024 * 1024)  # Memory usage delta in MB
+            cpu = process.cpu_percent(interval=None)  
+            mem = (end_mem - start_mem) / (1024 * 1024)  
 
             times.append(elapsed)
             cpu_usages.append(cpu)
@@ -132,7 +118,7 @@ if __name__ == "__main__":
         # Append results
         results.append((
             size, file_a, file_b,
-            mean_time, median_time, std_time,  # <--- Std Time (s) now
+            mean_time, median_time, std_time,
             mean_cpu, median_cpu, std_cpu,
             mean_mem, median_mem, std_mem,
             language

@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 use sysinfo::{System, SystemExt, ProcessExt};
 
 // --- Parameters ---
-const MATRIX_SIZES: [usize; 4] = [10, 100, 1000, 2000]; // adjust as needed
+const MATRIX_SIZES: [usize; 3] = [10, 100, 1000];
 const ITERATIONS: usize = 50;
 const PAUSE_EVERY: usize = 20;
 const PAUSE_DURATION: u64 = 10;
@@ -53,16 +53,6 @@ fn naive_matrix_multiplication(a: &Vec<Vec<i32>>, b: &Vec<Vec<i32>>, n: usize) -
         }
     }
     start.elapsed().as_secs_f64()
-}
-
-// --- Warm-up ---
-fn warm_up(a: &Vec<Vec<i32>>, b: &Vec<Vec<i32>>, size: usize, iterations: usize, pause: u64) {
-    println!("\n=== Warm-up: {} iterations for size {}x{} ===", iterations, size, size);
-    for i in 1..=iterations {
-        naive_matrix_multiplication(a, b, size);
-        println!("✅ Warm-up iteration {} completed", i);
-        sleep(Duration::from_secs(pause));
-    }
 }
 
 // --- Statistics ---
@@ -110,14 +100,6 @@ fn main() {
     let pid = sysinfo::get_current_pid().unwrap();
     let mut results: Vec<(usize,String,String,f64,f64,f64,f64,f64,f64,f64,f64,f64,String)> = Vec::new();
 
-    // Warm-up with largest matrix
-    let max_size = *MATRIX_SIZES.iter().max().unwrap();
-    let file_a_warm = format!("{}/A_{}.bin", MATRIX_DIR, max_size);
-    let file_b_warm = format!("{}/B_{}.bin", MATRIX_DIR, max_size);
-    let matrix_a_warm = read_matrix_from_binary(&file_a_warm, max_size);
-    let matrix_b_warm = read_matrix_from_binary(&file_b_warm, max_size);
-    warm_up(&matrix_a_warm, &matrix_b_warm, max_size, 5, 2);
-
     for &size in MATRIX_SIZES.iter() {
         let file_a = format!("{}/A_{}.bin", MATRIX_DIR, size);
         let file_b = format!("{}/B_{}.bin", MATRIX_DIR, size);
@@ -136,18 +118,18 @@ fn main() {
             sys.refresh_process(pid);
             let proc = sys.process(pid).unwrap();
 
-            let start_mem = proc.memory(); // KB
+            let start_mem = proc.memory();
             let start = Instant::now();
             naive_matrix_multiplication(&matrix_a, &matrix_b, size);
             let elapsed = start.elapsed().as_secs_f64();
             sys.refresh_process(pid);
             let proc2 = sys.process(pid).unwrap();
-            let end_mem = proc2.memory(); // KB
-            let cpu = proc2.cpu_usage(); // %
+            let end_mem = proc2.memory();
+            let cpu = proc2.cpu_usage(); 
 
             times.push(elapsed);
             cpu_usage.push(cpu as f64);
-            mem_usage.push((end_mem - start_mem) as f64 / 1024.0); // MB
+            mem_usage.push((end_mem - start_mem) as f64 / 1024.0);
 
             if (i+1) % PAUSE_EVERY == 0 && (i+1)!=ITERATIONS {
                 println!("💤 Pausing for {} seconds...", PAUSE_DURATION);
@@ -171,7 +153,7 @@ fn main() {
 
         results.push((
             size, file_a.clone(), file_b.clone(),
-            mean_time, median_time, std_time,  // Std Time (s)
+            mean_time, median_time, std_time,  
             mean_cpu, median_cpu, std_cpu,
             mean_mem, median_mem, std_mem,
             LANGUAGE.to_string()

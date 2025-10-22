@@ -10,10 +10,10 @@ import com.sun.management.OperatingSystemMXBean;
 public class NaiveMatrixMultiplication {
 
     // --- Parameters ---
-    static int[] matrixSizes = {10, 100, 1000, 2000}; // Adjust sizes as needed
-    static int iterations = 50;           // Adjust for testing
-    static int pauseEvery = 20;           // Pause every 20 iterations
-    static int pauseDuration = 10;        // Pause duration in seconds
+    static int[] matrixSizes = {10, 100, 1000}; 
+    static int iterations = 50;           
+    static int pauseEvery = 20;           
+    static int pauseDuration = 10;        
     static String language = "Java";
     static String matrixDir = "matrices";
     static String csvFile = "results/java_results.csv";
@@ -44,17 +44,7 @@ public class NaiveMatrixMultiplication {
                 for (int k = 0; k < n; k++)
                     C[i][j] += A[i][k] * B[k][j];
         long end = System.nanoTime();
-        return (end - start) / 1e9; // Convert to seconds
-    }
-
-    // --- Warm-up ---
-    public static void warmUp(int[][] A, int[][] B, int size, int iterations, int pauseSeconds) throws InterruptedException {
-        System.out.println("\n=== Warm-up: " + iterations + " iterations for size " + size + "x" + size + " ===");
-        for (int i = 1; i <= iterations; i++) {
-            naiveMatrixMultiplication(A, B, size);
-            System.out.println("[OK] Warm-up iteration " + i + " completed");
-            TimeUnit.SECONDS.sleep(pauseSeconds);
-        }
+        return (end - start) / 1e9;
     }
 
     // --- Save results to CSV ---
@@ -96,7 +86,7 @@ public class NaiveMatrixMultiplication {
 
     // --- Get CPU and memory usage ---
     public static double getProcessCpuLoad() {
-        return osBean.getProcessCpuLoad() * 100; // percent
+        return osBean.getProcessCpuLoad() * 100;
     }
 
     public static double getMemoryUsageMB() {
@@ -106,11 +96,6 @@ public class NaiveMatrixMultiplication {
     // --- Main ---
     public static void main(String[] args) throws Exception {
         List<String[]> results = new ArrayList<>();
-
-        int maxSize = Arrays.stream(matrixSizes).max().getAsInt();
-        int[][] matrixAWarmUp = readMatrixFromBinary(matrixDir + "/A_" + maxSize + ".bin", maxSize);
-        int[][] matrixBWarmUp = readMatrixFromBinary(matrixDir + "/B_" + maxSize + ".bin", maxSize);
-        warmUp(matrixAWarmUp, matrixBWarmUp, maxSize, 5, 2);
 
         for (int size : matrixSizes) {
             String fileA = matrixDir + "/A_" + size + ".bin";

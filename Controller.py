@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import time
 
 # Global constants
-MATRIX_SIZES = [10, 100, 1_000, 2_000]
+MATRIX_SIZES = [10, 100, 1_000]
 RESULTS_DIR = "results"
 GRAPHS_DIR = "graphs"
 MATRIX_DIR = "matrices"
@@ -17,24 +17,20 @@ SEED = 1
 #------------------- FUNCTIONS ------------------
 def generate_matrices(matrix_sizes, seed, matrix_dir):
     print("\n=== Generating matrices ===")
-    rng = np.random.default_rng(seed)  # ✅ Usar el generador correctamente
+    rng = np.random.default_rng(seed)
     
-    os.makedirs(matrix_dir, exist_ok=True)  # Asegura que el directorio exista
+    os.makedirs(matrix_dir, exist_ok=True)
     
     for size in matrix_sizes:
-        # ✅ Generar enteros aleatorios entre 0 y 9 (inclusive)
         MATRIX_A = rng.integers(0, 10, size=(size, size), dtype=np.int32)
         MATRIX_B = rng.integers(0, 10, size=(size, size), dtype=np.int32)
 
-        # Archivos de salida
         matrix_a_file = os.path.join(matrix_dir, f"A_{size}.bin")
         matrix_b_file = os.path.join(matrix_dir, f"B_{size}.bin")
 
-        # ✅ Guardar como binario
         MATRIX_A.tofile(matrix_a_file)
         MATRIX_B.tofile(matrix_b_file)
 
-        #print(f"Saved {matrix_a_file} and {matrix_b_file}")
         print(f"✅ Generated matrices of size {size}x{size}...")
 
     print("✅ All matrices generated and saved as binary files.")
@@ -86,7 +82,7 @@ def generate_cpu_graph(df, lang, graphs_dir):
     plt.title(f"{lang} Benchmark - CPU Usage")
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.5)
-    plt.ylim(bottom=0)  # y-axis starts at 0
+    plt.ylim(bottom=0)
     plt.tight_layout()
     plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_cpu.png"))
     plt.close()
@@ -105,7 +101,7 @@ def generate_memory_graph(df, lang, graphs_dir):
     plt.title(f"{lang} Benchmark - Memory Usage")
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.5)
-    plt.ylim(bottom=0)  # y-axis starts at 0
+    plt.ylim(bottom=0)
     plt.tight_layout()
     plt.savefig(os.path.join(graphs_dir, f"{lang.lower()}_memory.png"))
     plt.close()
@@ -152,7 +148,7 @@ def plot_results(csv_files=None, graphs_dir="graphs", check_interval=1):
     # --- Read each CSV into a DataFrame ---
     dfs = {lang: pd.read_csv(path) for lang, path in csv_files.items()}
 
-    # --- Per-language graphs ---
+    # --- Specific-language graphs ---
     for lang, df in dfs.items():
         generate_time_graph(df, lang, graphs_dir)
         generate_cpu_graph(df, lang, graphs_dir)

@@ -15,10 +15,9 @@
 
 const char *matrix_dir = "matrices";
 const char *csv_file = "results/c_results.csv";
-const int matrix_sizes[] = {10, 100, 1000, 2000};
+const int matrix_sizes[] = {10, 100, 1000};
 const int num_sizes = sizeof(matrix_sizes)/sizeof(matrix_sizes[0]);
 
-// --- High precision timer using QueryPerformanceCounter ---
 double get_time_seconds() {
     static LARGE_INTEGER freq;
     static int initialized = 0;
@@ -31,7 +30,6 @@ double get_time_seconds() {
     return (double)t.QuadPart / freq.QuadPart;
 }
 
-// --- Read binary matrix ---
 int **read_matrix_from_binary(const char *filename, int size) {
     FILE *f = fopen(filename, "rb");
     if (!f) { fprintf(stderr, "[ERROR] Couldn't open file '%s'\n", filename); exit(EXIT_FAILURE); }
@@ -49,7 +47,6 @@ int **read_matrix_from_binary(const char *filename, int size) {
     return matrix;
 }
 
-// --- Naive matrix multiplication ---
 double naive_matrix_multiplication(int **A, int **B, int n) {
     int *data_C = calloc(n*n, sizeof(int));
     int **C = malloc(n*sizeof(int*));
@@ -64,16 +61,6 @@ double naive_matrix_multiplication(int **A, int **B, int n) {
 
     free(data_C); free(C);
     return end-start;
-}
-
-// --- Warm-up ---
-void warm_up(int **A,int **B,int size,int iterations,int pause_sec){
-    printf("\n=== Warm-up: %d iterations for size %dx%d ===\n", iterations, size, size);
-    for(int i=1;i<=iterations;i++){
-        naive_matrix_multiplication(A,B,size);
-        printf("[OK] Warm-up iteration %d completed\n",i);
-        Sleep(pause_sec*1000);
-    }
 }
 
 // --- Statistics ---
@@ -97,8 +84,7 @@ double get_cpu_usage() {
 
     SYSTEMTIME st;
     double procTime=(double)( ( (ULARGE_INTEGER*)&ftProcKernel)->QuadPart + ((ULARGE_INTEGER*)&ftProcUser)->QuadPart );
-    // Rough approximation: returns value in percent of one core
-    return procTime/1e7; // convert to percent; rough, not exact
+    return procTime/1e7;
 }
 
 double get_memory_usage_mb() {
@@ -112,7 +98,6 @@ void save_results_to_csv(char results[][13][256], int num_rows) {
     FILE *f = fopen(csv_file,"w");
     if(!f){ perror("[ERROR] Couldn't open CSV file"); exit(EXIT_FAILURE); }
 
-    // Updated header
     fprintf(f,"Size,Matrix A File,Matrix B File,Mean Time (s),Median Time (s),Std Time (s),Mean CPU (%%),Median CPU (%%),Std CPU (%%),Mean Memory (MB),Median Memory (MB),Std Memory (MB),Language\n");
 
     for(int i=0;i<num_rows;i++){
@@ -129,15 +114,6 @@ int main(){
 
     char results[100][13][256];
     int result_idx=0;
-
-    int max_size=matrix_sizes[num_sizes-1];
-    char file_a_warm[256], file_b_warm[256];
-    snprintf(file_a_warm,sizeof(file_a_warm),"%s/A_%d.bin",matrix_dir,max_size);
-    snprintf(file_b_warm,sizeof(file_b_warm),"%s/B_%d.bin",matrix_dir,max_size);
-
-    int **matrix_a_warm=read_matrix_from_binary(file_a_warm,max_size);
-    int **matrix_b_warm=read_matrix_from_binary(file_b_warm,max_size);
-    warm_up(matrix_a_warm,matrix_b_warm,max_size,WARMUP_ITER,WARMUP_PAUSE);
 
     for(int s=0;s<num_sizes;s++){
         int size=matrix_sizes[s];
@@ -190,9 +166,6 @@ int main(){
         free(matrix_a[0]); free(matrix_a);
         free(matrix_b[0]); free(matrix_b);
     }
-
-    free(matrix_a_warm[0]); free(matrix_a_warm);
-    free(matrix_b_warm[0]); free(matrix_b_warm);
 
     save_results_to_csv(results,result_idx);
 
