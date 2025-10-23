@@ -162,17 +162,17 @@ def plot_results(csv_files=None, graphs_dir="graphs", check_interval=1):
 
 
 #------------------- DIRECTORY SET UP ------------------
-os.makedirs(RESULTS_DIR, exist_ok=True)
-os.makedirs(GRAPHS_DIR, exist_ok=True)
-os.makedirs(MATRIX_DIR, exist_ok=True)
-
-
-#------------------- GENERATE MATRICES ------------------
-generate_matrices(MATRIX_SIZES, SEED, MATRIX_DIR)
-
-
-#------------------- RUN EXECUTABLES ------------------
-execute_naive_matrix_multiplication()
+#os.makedirs(RESULTS_DIR, exist_ok=True)
+#os.makedirs(GRAPHS_DIR, exist_ok=True)
+#os.makedirs(MATRIX_DIR, exist_ok=True)
+#
+#
+##------------------- GENERATE MATRICES ------------------
+#generate_matrices(MATRIX_SIZES, SEED, MATRIX_DIR)
+#
+#
+##------------------- RUN EXECUTABLES ------------------
+#execute_naive_matrix_multiplication()
 
 
 #------------------- PLOT RESULTS ------------------
